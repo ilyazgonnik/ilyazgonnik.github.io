@@ -45,20 +45,15 @@
       chatbox.scrollTop = chatbox.scrollHeight;
 
       try {
-        const response = await fetch('http://localhost:8000/api/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${OPENROUTER_API_KEY}` ,
-            //'HTTP-Referer': 'https://aifetish.xyz', // Required for free models
-            //'X-Title': "Venice Chat" // Your app name
-          },
-          body: JSON.stringify({
-            model: "cognitivecomputations/dolphin-mistral-24b-venice-edition:free", // Free model
-            messages: conversationHistory,
-            temperature: 0.7 // More creative responses
-          })
-        });
+        const response = await fetch('http://aifetish.xyz', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    messages: conversationHistory  // Отправляем только историю сообщений
+  })
+});
 
         if (!response.ok) throw new Error(`API error: ${response.status}`);
         const data = await response.json();
