@@ -1,0 +1,15 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Hugging Face cache
+.cache/
+models/
+
+# Node.js (if applicable)
+node_modules/
+
+# System files
+.DS_Store
+Thumbs.db
