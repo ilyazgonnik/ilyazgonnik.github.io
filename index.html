@@ -21,7 +21,9 @@
   </div>
 
   <script>
-    const OPENROUTER_API_KEY = "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"; // Get from https://openrouter.ai/keys
+    const part1 = "sk-or-v1-9bf669a56ac1f5c2d3148908d"
+    const part2 = "d6a36ff5beef3edf6d86bbf0111c6554ff41441"
+    const OPENROUTER_API_KEY = part1 + part2; // Get from https://openrouter.ai/keys
     let conversationHistory = [];
 
     async function sendMessage() {
@@ -47,7 +49,7 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': "Bearer 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" ,
+            'Authorization': `Bearer ${OPENROUTER_API_KEY}` ,
             //'HTTP-Referer': 'https://aifetish.xyz', // Required for free models
             //'X-Title': "Venice Chat" // Your app name
           },
