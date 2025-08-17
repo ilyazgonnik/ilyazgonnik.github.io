@@ -48,11 +48,11 @@
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer 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`,
-           // 'HTTP-Referer': "https://aifetish.xyz/", // Required for free models
-            'X-Title': "Venice Chat" // Your app name
+            //'HTTP-Referer': 'https://aifetish.xyz', // Required for free models
+            //'X-Title': "Venice Chat" // Your app name
           },
           body: JSON.stringify({
-            model: "venice/fp16", // Free model
+            model: "cognitivecomputations/dolphin-mistral-24b-venice-edition:free", // Free model
             messages: conversationHistory,
             temperature: 0.7 // More creative responses
           })
