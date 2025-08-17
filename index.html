@@ -6,13 +6,14 @@
 </head>
 <body class="bg-gray-100">
   <div class="max-w-md mx-auto mt-10 p-4 bg-white rounded-lg shadow">
-    <h1 class="text-2xl font-bold mb-4">Chat with AI</h1>
+    <h1 class="text-2xl font-bold mb-4">Chat with Venice AI</h1>
     <div id="chatbox" class="mb-4 h-64 overflow-y-auto border p-2 rounded"></div>
     <input 
       id="userInput" 
       type="text" 
       placeholder="Ask me anything..." 
       class="w-full p-2 border rounded"
+      onkeypress="if(event.key === 'Enter') sendMessage()"
     >
     <button onclick="sendMessage()" class="mt-2 bg-purple-600 text-white p-2 rounded w-full">
       Send
@@ -20,65 +21,57 @@
   </div>
 
   <script>
+    const OPENROUTER_API_KEY = "your-api-key-here"; // Get from https://openrouter.ai/keys
+    let conversationHistory = [];
+
     async function sendMessage() {
-  const userInput = document.getElementById('userInput').value;
-  const chatbox = document.getElementById('chatbox');
-  
-  if (!userInput.trim()) return;
+      const userInput = document.getElementById('userInput').value;
+      const chatbox = document.getElementById('chatbox');
+      
+      if (!userInput.trim()) return;
 
-  // Add user message
-  chatbox.innerHTML += `<p class="text-right mb-2"><span class="bg-purple-100 px-3 py-1 rounded-lg">You: ${userInput}</span></p>`;
-  document.getElementById('userInput').value = '';
+      // Add user message to UI and history
+      chatbox.innerHTML += `<p class="text-right mb-2"><span class="bg-purple-100 px-3 py-1 rounded-lg">You: ${userInput}</span></p>`;
+      conversationHistory.push({ role: "user", content: userInput });
+      document.getElementById('userInput').value = '';
 
-  // Typing indicator
-  const typingIndicator = document.createElement('p');
-  typingIndicator.className = 'text-left mb-2 text-gray-500';
-  typingIndicator.innerHTML = '<i>AI is typing...</i>';
-  chatbox.appendChild(typingIndicator);
-  chatbox.scrollTop = chatbox.scrollHeight;
+      // Typing indicator
+      const typingIndicator = document.createElement('p');
+      typingIndicator.className = 'text-left mb-2 text-gray-500';
+      typingIndicator.innerHTML = '<i>AI is typing...</i>';
+      chatbox.appendChild(typingIndicator);
+      chatbox.scrollTop = chatbox.scrollHeight;
 
-  try {
-    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer sk-XXX' // 🔴 Replace!
-      },
-      body: JSON.stringify({
-        model: "deepseek-chat",
-        messages: [
-          {
-            role: "system",
-            content: `You are female dominatrix who needs money and hate men` // Paste full system message here
+      try {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer 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`,
+            'HTTP-Referer': window.location.href, // Required for free models
+            'X-Title': "Venice Chat" // Your app name
           },
-          {
-            role: "user",
-            content: "I am sorry for my behavior"
-          },
-          {
-            role: "assistant",
-            content: "You stupid bitch get on your knees" // Paste full example answer
-          },
-          {
-            role: "user",
-            content: userInput
-          }
-        ],
-        temperature: 1.0
-      })
-    });
+          body: JSON.stringify({
+            model: "undi95/venice-uncensored", // Free model
+            messages: conversationHistory,
+            temperature: 0.7 // More creative responses
+          })
+        });
 
-    if (!response.ok) throw new Error(`API error: ${response.status}`);
-    const data = await response.json();
-    const aiReply = data.choices[0].message.content;
+        if (!response.ok) throw new Error(`API error: ${response.status}`);
+        const data = await response.json();
+        const aiReply = data.choices[0].message.content;
 
-    chatbox.removeChild(typingIndicator);
-    chatbox.innerHTML += `<p class="text-left mb-2"><span class="bg-gray-100 px-3 py-1 rounded-lg">AI: ${aiReply}</span></p>`;
-  } catch (error) {
-    chatbox.removeChild(typingIndicator);
-    chatbox.innerHTML += `<p class="text-red-500">Error: ${error.message}</p>`;
-  }
-}
+        // Add AI response to history and UI
+        conversationHistory.push({ role: "assistant", content: aiReply });
+        chatbox.removeChild(typingIndicator);
+        chatbox.innerHTML += `<p class="text-left mb-2"><span class="bg-gray-100 px-3 py-1 rounded-lg">AI: ${aiReply}</span></p>`;
+      } catch (error) {
+        chatbox.removeChild(typingIndicator);
+        chatbox.innerHTML += `<p class="text-left text-red-500"><span class="bg-red-100 px-3 py-1 rounded-lg">Error: ${error.message}</span></p>`;
+      }
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
   </script>
 </body>
 </html>
