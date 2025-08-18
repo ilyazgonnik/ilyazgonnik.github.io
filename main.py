@@ -24,7 +24,7 @@ async def chat(request: Request):
         "https://openrouter.ai/api/v1/chat/completions",
         headers={
             "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
-            "HTTP-Referer": "https://aifetish.xyz/",  # Замените на ваш URL
+            "HTTP-Referer": "https://aifetish.xyz/",  # Заuvicorn main:app --reloadмените на ваш URL
             "X-Title": "AI Chat",
             "Content-Type": "application/json"
         },
