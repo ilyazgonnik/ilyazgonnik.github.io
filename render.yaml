@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: aifetish-backend
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn main:app --host 0.0.0.0 --port 8000"
+    envVars:
+      - key: OPENROUTER_API_KEY
+        sync: false # Это значит, что значение вы введете вручную в панели управления Render

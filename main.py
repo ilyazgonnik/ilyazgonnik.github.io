@@ -13,12 +13,12 @@ app = FastAPI()
 origins = [
     "https://www.aifetish.xyz",  # Разрешите ваш продакшен-домен
     "http://localhost:8000",  # Для локальной разработки (опционально)
-    "http://127.0.0.1:8000",   # Для локальной разработки (опционально)
+    "http://127.0.0.1:5500",   # Для локальной разработки (опционально)
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    #allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

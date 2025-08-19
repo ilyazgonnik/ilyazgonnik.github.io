@@ -68,7 +68,7 @@ async function startChat() {
     }
     
     try {
-        const response = await fetch('http://192.168.0.103:8000/api/chat/start', {
+        const response = await fetch('/api/chat/start', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -116,7 +116,7 @@ async function sendMessage() {
     input.value = '';
     
     try {
-        const response = await fetch('http://192.168.0.103:8000/api/chat', {
+        const response = await fetch('/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
