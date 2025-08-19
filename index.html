@@ -1,71 +1,21 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>AI Fetish Chatbot</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100">
-  <div class="max-w-md mx-auto mt-10 p-4 bg-white rounded-lg shadow">
-    <h1 class="text-2xl font-bold mb-4">Chat with Venice AIIIIII</h1>
-    <div id="chatbox" class="mb-4 h-64 overflow-y-auto border p-2 rounded"></div>
-    <input 
-      id="userInput" 
-      type="text" 
-      placeholder="Ask me anything..." 
-      class="w-full p-2 border rounded"
-      onkeypress="if(event.key === 'Enter') sendMessage()"
-    >
-    <button onclick="sendMessage()" class="mt-2 bg-purple-600 text-white p-2 rounded w-full">
-      Send
-    </button>
-  </div>
+// 1. Пользователь выбирает жанры
+const selectedGenres = ['comedy', 'drama'];
 
-  <script>
-    let conversationHistory = [];
-
-    async function sendMessage() {
-      const userInput = document.getElementById('userInput').value;
-      const chatbox = document.getElementById('chatbox');
-      
-      if (!userInput.trim()) return;
-
-      // Add user message to UI and history
-      chatbox.innerHTML += `<p class="text-right mb-2"><span class="bg-purple-100 px-3 py-1 rounded-lg">You: ${userInput}</span></p>`;
-      conversationHistory.push({ role: "user", content: userInput });
-      document.getElementById('userInput').value = '';
-
-      // Typing indicator
-      const typingIndicator = document.createElement('p');
-      typingIndicator.className = 'text-left mb-2 text-gray-500';
-      typingIndicator.innerHTML = '<i>AI is typing...</i>';
-      chatbox.appendChild(typingIndicator);
-      chatbox.scrollTop = chatbox.scrollHeight;
-
-      try {
-        const response = await fetch('http://127.0.0.1:8000/api/chat', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    messages: conversationHistory  // Отправляем только историю сообщений
-  })
+// 2. Инициализируем чат с выбранными жанрами
+const initResponse = await fetch('/api/chat/start', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enabled_genres: selectedGenres })
 });
 
-        if (!response.ok) throw new Error(`API error: ${response.status}`);
-        const data = await response.json();
-        const aiReply = data.choices[0].message.content;
-
-        // Add AI response to history and UI
-        conversationHistory.push({ role: "assistant", content: aiReply });
-        chatbox.removeChild(typingIndicator);
-        chatbox.innerHTML += `<p class="text-left mb-2"><span class="bg-gray-100 px-3 py-1 rounded-lg">AI: ${aiReply}</span></p>`;
-      } catch (error) {
-        chatbox.removeChild(typingIndicator);
-        chatbox.innerHTML += `<p class="text-left text-red-500"><span class="bg-red-100 px-3 py-1 rounded-lg">Error: ${error.message}</span></p>`;
-      }
-      chatbox.scrollTop = chatbox.scrollHeight;
-    }
-  </script>
-</body>
-</html>
+// 3. Начинаем общение
+const chatResponse = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        enabled_genres: selectedGenres,
+        messages: [
+            { role: 'user', content: 'Посоветуй хороший фильм' }
+        ]
+    })
+});
