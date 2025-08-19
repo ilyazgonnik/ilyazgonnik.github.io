@@ -1,21 +1,44 @@
-// 1. Пользователь выбирает жанры
-const selectedGenres = ['comedy', 'drama'];
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кино-помощник с выбором жанров</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <div class="genre-selector">
+            <h2>🎬 Выберите жанры фильмов</h2>
+            <div class="genre-toggles" id="genreToggles">
+                <!-- Тумблеры будут добавлены через JavaScript -->
+            </div>
+            
+            <button id="startChatBtn" class="start-chat-btn" disabled>
+                Начать чат (<span id="selectedCount">0</span> выбрано)
+            </button>
+        </div>
 
-// 2. Инициализируем чат с выбранными жанрами
-const initResponse = await fetch('/api/chat/start', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ enabled_genres: selectedGenres })
-});
+        <div id="chatContainer" class="chat-container" style="display: none;">
+            <div class="chat-header">
+                <h3>💬 Чат с кинопомощником</h3>
+                <button id="resetChatBtn" class="reset-btn">🔄 Сбросить</button>
+            </div>
+            
+            <div id="chatMessages" class="chat-messages"></div>
+            
+            <div class="chat-input">
+                <input 
+                    type="text" 
+                    id="messageInput" 
+                    placeholder="Введите ваше сообщение..."
+                    disabled
+                >
+                <button id="sendMessageBtn" disabled>📤 Отправить</button>
+            </div>
+        </div>
+    </div>
 
-// 3. Начинаем общение
-const chatResponse = await fetch('/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-        enabled_genres: selectedGenres,
-        messages: [
-            { role: 'user', content: 'Посоветуй хороший фильм' }
-        ]
-    })
-});
+    <script src="script.js"></script>
+</body>
+</html>
