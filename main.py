@@ -106,7 +106,7 @@ async def chat(request: ChatRequest):
             "https://openrouter.ai/api/v1/chat/completions",
             headers={
                 "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
-                "HTTP-Referer": "https://yourdomain.com/",
+                "HTTP-Referer": "https://aifetish.xyz",
                 "X-Title": "Film AI Assistant",
                 "Content-Type": "application/json"
             },
