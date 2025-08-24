@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 import random
 import uuid
 from fastapi import FastAPI, Request, HTTPException
@@ -201,13 +202,23 @@ def cleanup_old_sessions(days=7):
     
     return deleted_count
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    init_db()
+    #print("Database initialized")
+    yield
+    # Shutdown
+    # Закрыть соединения если нужно
+
+app = FastAPI(lifespan=lifespan)
+
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
     """Основной обработчик чата"""
     try:
         system_prompt = create_system_prompt(request.selected_genres)
         
-        init_db()
         session_id = request.session_id or str(uuid.uuid4())
         session_data = load_session(session_id)
         if not session_data:
