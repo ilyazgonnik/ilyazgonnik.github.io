@@ -1,12 +1,13 @@
 import random
 import uuid
-from fastapi import FastAPI, Path, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 import requests
 import os
 from dotenv import load_dotenv
+from pathlib import Path 
 
 load_dotenv()
 
