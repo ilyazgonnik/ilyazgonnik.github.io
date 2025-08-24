@@ -58,10 +58,10 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     messages: List[ChatMessage]
-    enabled_genres: List[str]
+    selected_genres: List[str]
 
 class StartChatRequest(BaseModel):
-    enabled_genres: List[str]
+    selected_genres: List[str]
 
 def create_system_prompt(enabled_genres: List[str]) -> str:
     """Создает объединенный системный промпт"""
