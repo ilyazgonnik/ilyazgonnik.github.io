@@ -48,7 +48,7 @@ def init_db():
 
 # Сохранение сессии
 def save_session(session_id, data):
-    conn = sqlite3.connect('chats.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''INSERT OR REPLACE INTO sessions 
                  VALUES (?, ?, ?, ?, ?)''',
@@ -62,7 +62,7 @@ def save_session(session_id, data):
 
 # Загрузка сессии
 def load_session(session_id):
-    conn = sqlite3.connect('chats.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('SELECT * FROM sessions WHERE session_id = ?', (session_id,))
     row = c.fetchone()
@@ -79,7 +79,7 @@ def load_session(session_id):
 
 # Удаление сессии
 def delete_session(session_id):
-    conn = sqlite3.connect('chats.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('DELETE FROM sessions WHERE session_id = ?', (session_id,))
     conn.commit()
