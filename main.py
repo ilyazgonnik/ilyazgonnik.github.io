@@ -231,10 +231,11 @@ async def chat(request: ChatRequest):
                 'created_at': datetime.utcnow().isoformat(),
                 'last_activity': datetime.utcnow().isoformat()
             }
-        
+        new_messages = [msg.dict() for msg in request.messages]
+        session_data['messages'].extend(new_messages)
         messages_with_system = [
             {"role": "system", "content": system_prompt}
-        ] + [msg.dict() for msg in request.messages] + session_data['messages']
+        ] + session_data['messages']
         
         if len(session_data['messages']) > 40:
             session_data['messages'] = session_data['messages'][-20:]
