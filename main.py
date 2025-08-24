@@ -63,14 +63,14 @@ class ChatRequest(BaseModel):
 class StartChatRequest(BaseModel):
     selected_genres: List[str]
 
-def create_system_prompt(enabled_genres: List[str]) -> str:
+def create_system_prompt(selected_genres: List[str]) -> str:
     """Создает объединенный системный промпт"""
-    if not enabled_genres:
+    if not selected_genres:
         return "Ты помощник по фильмам. Отвечай на вопросы о кино."
     
     base_prompt = "Ты кинопомощник со специализацией в следующих жанрах:\n\n"
     
-    for genre in enabled_genres:
+    for genre in selected_genres:
         if genre in GENRE_PROMPTS:
             base_prompt += f"• {GENRE_PROMPTS[genre]['prompt']}\n\n"
     
@@ -83,16 +83,16 @@ def create_system_prompt(enabled_genres: List[str]) -> str:
 async def start_chat(request: StartChatRequest):
     """Инициализация чата с выбранными жанрами"""
     try:
-        if not request.enabled_genres:
+        if not request.selected_genres:
             raise HTTPException(status_code=400, detail="No genres selected")
         
-        system_prompt = create_system_prompt(request.enabled_genres)
+        system_prompt = create_system_prompt(request.selected_genres)
         
         return {
             "success": True,
             "system_prompt": system_prompt,
-            "enabled_genres": request.enabled_genres,
-            "message": f"Чат инициализирован с {len(request.enabled_genres)} жанрами"
+            "selected_genres": request.selected_genres,
+            "message": f"Чат инициализирован с {len(request.selected_genres)} жанрами"
         }
         
     except Exception as e:
@@ -102,7 +102,7 @@ async def start_chat(request: StartChatRequest):
 async def chat(request: ChatRequest):
     """Основной обработчик чата"""
     try:
-        system_prompt = create_system_prompt(request.enabled_genres)
+        system_prompt = create_system_prompt(request.selected_genres)
         
         messages_with_system = [
             {"role": "system", "content": system_prompt}
