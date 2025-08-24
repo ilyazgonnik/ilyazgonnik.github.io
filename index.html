@@ -541,7 +541,9 @@
         });
         
         if (!response.ok) {
-            throw new Error('Ошибка отправки сообщения');
+            const errorText = await response.text();
+            console.error('Server error response:', errorText);
+            throw new Error(`Ошибка сервера: ${response.status} - ${errorText}`);
         }
         
         const data = await response.json();
