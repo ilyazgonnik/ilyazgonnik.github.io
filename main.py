@@ -14,6 +14,19 @@ load_dotenv()
 
 app = FastAPI()
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    init_db()
+    #print("Database initialized")
+    yield
+    # Shutdown
+    # Закрыть соединения если нужно
+
+app = FastAPI(lifespan=lifespan)
+
+
 origins = [
     "https://ilyazgonnik.github.io",  # URL вашего GitHub Pages сайта
     "http://localhost:8000",  # Для локальной разработки, можно удалить в продакшене
@@ -202,16 +215,6 @@ def cleanup_old_sessions(days=7):
     
     return deleted_count
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup
-    init_db()
-    #print("Database initialized")
-    yield
-    # Shutdown
-    # Закрыть соединения если нужно
-
-app = FastAPI(lifespan=lifespan)
 
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
