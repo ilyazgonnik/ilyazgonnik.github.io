@@ -12,8 +12,6 @@ from pathlib import Path
 
 load_dotenv()
 
-app = FastAPI()
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
