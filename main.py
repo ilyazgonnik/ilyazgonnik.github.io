@@ -109,15 +109,15 @@ async def chat(request: ChatRequest):
         ] + [msg.dict() for msg in request.messages]
         
         response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
+            "https://api.venice.ai/api/v1/chat/completions",
             headers={
-                "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
+                "Authorization": f"Bearer {os.getenv('VENICE_API_KEY')}",
                 "HTTP-Referer": "https://aifetish.xyz",
                 "X-Title": "Film AI Assistant",
                 "Content-Type": "application/json"
             },
             json={
-                "model": "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
+                "model": "venice-uncensored",
                 "messages": messages_with_system,
                 "temperature": 0.7,
                 "max_tokens": 1000
