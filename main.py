@@ -9,40 +9,11 @@ import requests
 import os
 from dotenv import load_dotenv
 from pathlib import Path 
-
-load_dotenv()
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup
-    init_db()
-    #print("Database initialized")
-    yield
-    # Shutdown
-    # Закрыть соединения если нужно
-
-app = FastAPI(lifespan=lifespan)
-
-
-origins = [
-    "https://ilyazgonnik.github.io",  # URL вашего GitHub Pages сайта
-    "http://localhost:8000",  # Для локальной разработки, можно удалить в продакшене
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins = ["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-
 import sqlite3
 import json
 from datetime import datetime, timedelta
+load_dotenv()
+
 
 # ✅ Оптимальный путь для Render.com
 DB_PATH = os.path.join(os.getenv('HOME', ''), 'data', 'chats.db')
@@ -113,6 +84,37 @@ def delete_session(session_id):
     c.execute('DELETE FROM sessions WHERE session_id = ?', (session_id,))
     conn.commit()
     conn.close()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    init_db()
+    #print("Database initialized")
+    yield
+    # Shutdown
+    # Закрыть соединения если нужно
+
+app = FastAPI(lifespan=lifespan)
+
+
+origins = [
+    "https://ilyazgonnik.github.io",  # URL вашего GitHub Pages сайта
+    "http://localhost:8000",  # Для локальной разработки, можно удалить в продакшене
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins = ["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+
+
+
 
 
 # Расширенные промпты для жанров
