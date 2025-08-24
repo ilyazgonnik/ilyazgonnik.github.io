@@ -291,6 +291,38 @@ async def get_genres_info():
         }
     }
 
+
+@app.get("/debug/db")
+async def debug_db():
+    """Проверка состояния базы данных"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        
+        # Проверяем какие таблицы существуют
+        c.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = c.fetchall()
+        
+        # Проверяем структуру таблицы sessions если она есть
+        sessions_exists = any('sessions' in table for table in tables)
+        sessions_structure = None
+        
+        if sessions_exists:
+            c.execute("PRAGMA table_info(sessions)")
+            sessions_structure = c.fetchall()
+        
+        conn.close()
+        
+        return {
+            "db_path": DB_PATH,
+            "tables": tables,
+            "sessions_exists": sessions_exists,
+            "sessions_structure": sessions_structure
+        }
+        
+    except Exception as e:
+        return {"error": str(e)}
+
 @app.get("/api/health")
 async def health_check():
     """Проверка работы API"""
