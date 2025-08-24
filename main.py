@@ -1,7 +1,9 @@
-from fastapi import FastAPI, Request, HTTPException
+import random
+import uuid
+from fastapi import FastAPI, Path, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import List, Dict, Optional
 import requests
 import os
 from dotenv import load_dotenv
@@ -22,6 +24,83 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+
+import sqlite3
+import json
+from datetime import datetime, timedelta
+
+# ✅ Оптимальный путь для Render.com
+DB_PATH = os.path.join(os.getenv('HOME', ''), 'data', 'chats.db')
+
+# Создаем директорию если нет
+Path(os.path.dirname(DB_PATH)).mkdir(exist_ok=True)
+
+# Инициализация базы данных
+def init_db():
+     """Инициализация базы с оптимизациями для малой памяти"""
+     conn = sqlite3.connect(DB_PATH)
+     c = conn.cursor()
+    
+     # Включаем оптимизации для малой памяти
+     c.execute("PRAGMA journal_mode = WAL")  # Лучшая производительность
+     c.execute("PRAGMA synchronous = NORMAL")  # Баланс скорость/надежность
+     c.execute("PRAGMA cache_size = -2000")  # Кеш 2MB вместо дефолтных 2GB
+    
+     c.execute('''CREATE TABLE IF NOT EXISTS sessions
+                 (session_id TEXT PRIMARY KEY,
+                  selected_genres TEXT,
+                  messages TEXT,
+                  created_at TEXT,
+                  last_activity TEXT)''')
+    
+     # Индекс для быстрого поиска
+     c.execute('''CREATE INDEX IF NOT EXISTS idx_last_activity 
+                 ON sessions(last_activity)''')
+    
+     conn.commit()
+     conn.close()
+
+# Сохранение сессии
+def save_session(session_id, data):
+    conn = sqlite3.connect('chats.db')
+    c = conn.cursor()
+    c.execute('''INSERT OR REPLACE INTO sessions 
+                 VALUES (?, ?, ?, ?, ?)''',
+              (session_id,
+               json.dumps(data['selected_genres']),
+               json.dumps(data['messages']),
+               data['created_at'],
+               data['last_activity']))
+    conn.commit()
+    conn.close()
+
+# Загрузка сессии
+def load_session(session_id):
+    conn = sqlite3.connect('chats.db')
+    c = conn.cursor()
+    c.execute('SELECT * FROM sessions WHERE session_id = ?', (session_id,))
+    row = c.fetchone()
+    conn.close()
+    
+    if row:
+        return {
+            'selected_genres': json.loads(row[1]),
+            'messages': json.loads(row[2]),
+            'created_at': row[3],
+            'last_activity': row[4]
+        }
+    return None
+
+# Удаление сессии
+def delete_session(session_id):
+    conn = sqlite3.connect('chats.db')
+    c = conn.cursor()
+    c.execute('DELETE FROM sessions WHERE session_id = ?', (session_id,))
+    conn.commit()
+    conn.close()
+
 
 # Расширенные промпты для жанров
 GENRE_PROMPTS = {
@@ -59,6 +138,8 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     messages: List[ChatMessage]
     selected_genres: List[str]
+    session_id: Optional[str] = None
+
 
 class StartChatRequest(BaseModel):
     selected_genres: List[str]
@@ -98,15 +179,59 @@ async def start_chat(request: StartChatRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+def cleanup_old_sessions(days=7):
+    """Очистка старых сессий для экономии места"""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    
+    cutoff_date = (datetime.utcnow() - timedelta(days=days)).isoformat()
+    c.execute('DELETE FROM sessions WHERE last_activity < ?', (cutoff_date,))
+    
+    deleted_count = c.rowcount
+    conn.commit()
+    conn.close()
+    
+    # Оптимизируем базу после удаления
+    if deleted_count > 0:
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute("VACUUM")  # Освобождает место на диске
+        conn.close()
+    
+    return deleted_count
+
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
     """Основной обработчик чата"""
     try:
         system_prompt = create_system_prompt(request.selected_genres)
         
+        init_db()
+        session_id = request.session_id or str(uuid.uuid4())
+        session_data = load_session(session_id)
+        if not session_data:
+            session_data = {
+                'selected_genres': request.selected_genres,
+                'messages': [],
+                'created_at': datetime.utcnow().isoformat(),
+                'last_activity': datetime.utcnow().isoformat()
+            }
+        
         messages_with_system = [
             {"role": "system", "content": system_prompt}
-        ] + [msg.dict() for msg in request.messages]
+        ] + [msg.dict() for msg in request.messages] + session_data['messages']
+        
+        if len(session_data['messages']) > 40:
+            session_data['messages'] = session_data['messages'][-20:]
+        
+        # ... обработка запроса ...
+        
+        # ✅ Сохраняем и сразу закрываем соединение
+        save_session(session_id, session_data)
+        
+        # ✅ Периодическая очистка старых сессий
+        if random.random() < 0.1:  # 10% chance to cleanup
+            cleanup_old_sessions(days=3)
         
         response = requests.post(
             "https://api.venice.ai/api/v1/chat/completions",
@@ -132,7 +257,7 @@ async def chat(request: ChatRequest):
         response_data = response.json()
         ai_response = response_data['choices'][0]['message']['content']
         
-        return {"response": ai_response}
+        return {"response": ai_response, "session_id": session_id}
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

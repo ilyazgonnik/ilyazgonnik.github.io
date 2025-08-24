@@ -387,6 +387,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 
     <script>
+        let currentSessionId = null;
         // Данные о жанрах (NSFW версия) на английском
         const genres = [
             { id: 'erotic', name: 'Erotic' },
@@ -519,7 +520,6 @@
                 sendMessage();
             }
         });
-
         async function sendMessage() {
             const message = messageInput.value.trim();
             if (!message) return;
@@ -535,7 +535,8 @@
             },
             body: JSON.stringify({
                 selected_genres: selectedGenres,
-                messages: [{ role: 'user', content: message }]
+                messages: [{ role: 'user', content: message }],
+                session_id: currentSessionId
             })
         });
         
@@ -544,6 +545,10 @@
         }
         
         const data = await response.json();
+        if (!currentSessionId && data.session_id) {
+            currentSessionId = data.session_id;
+            console.log('Новая сессия создана:', currentSessionId);
+        }
         addMessage('assistant', data.response);
         
     } catch (error) {
